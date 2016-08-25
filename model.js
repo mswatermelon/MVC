@@ -41,6 +41,28 @@ var Model = {
         return this.callApi('groups.get', {v: '5.53', extended: 1});
     },
     getPhoto: function() {
-        return this.callApi('photos.getAll', {v: '5.53', extended: 1, count:200});
+        let that = this;
+
+        return this.callApi('photos.getAll', {v: '5.53', extended: 1, count:200})
+            .then(function(photoItems) {
+                return that.callApi('photos.getAllComments', {
+                    v: '5.53',
+                    extended: 1,
+                    count: 100
+                }).then(function (comments) {
+                    for (let photo of photoItems.items) {
+                        photo.comments = [];
+                    }
+                    for (let comment of comments.items) {
+                        for (let photo of photoItems.items) {
+                            if (comment.pid == photo.id) {
+                                photo.comments.push(comment);
+                                console.log(photo.comments);
+                            }
+                        }
+                    }
+                    return photoItems
+                });
+            });
     }
 };
