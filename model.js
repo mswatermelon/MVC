@@ -42,13 +42,16 @@ var Model = {
     },
     getPhoto: function() {
         let that = this,
-            photoItems;
+            photoItems,
+            albums;
 
         return this.callApi('photos.getAll', {v: '5.53', extended: 1, count:200})
             .then(function(photos) {
+                let albums = [];
                 photoItems = photos;
                 for (let photo of photoItems.items) {
                     photo.comments = [];
+                    albums.push(photo.album_id);
                 }
                 return that.callApi('photos.getAllComments', {
                     v: '5.53',
@@ -68,21 +71,35 @@ var Model = {
                         fields: 'photo_50'
                     }).then(function (users) {
                         console.log(users);
-                        for (let photo of photoItems.items) {
-                            for (let comment of comments.items) {
-                                for (let user of users) {
-                                    if(user.id == comment.from_id){
-                                        comment.first_name = user.first_name;
-                                        comment.last_name = user.last_name;
-                                        comment.photo_50 = user.photo_50;
+
+                        return that.callApi('photos.getAlbums', {
+                            v: '5.53',
+                            album_ids: JSON.stringify(albums).replace('[','').replace(']','')
+                        }).then(function (albums) {
+                            console.log(albums);
+                            for (let album of albums.items) {
+                                album.photos = [];
+                                for (let photo of photoItems.items) {
+                                    for (let comment of comments.items) {
+                                        for (let user of users) {
+                                            if (user.id == comment.from_id) {
+                                                comment.first_name = user.first_name;
+                                                comment.last_name = user.last_name;
+                                                comment.photo_50 = user.photo_50;
+                                            }
+                                        }
+                                        if (comment.pid == photo.id) {
+                                            photo.comments.push(comment);
+                                        }
+                                    }
+                                    if (photo.album_id == album.id) {
+                                        album.photos.push(photo);
                                     }
                                 }
-                                if (comment.pid == photo.id) {
-                                    photo.comments.push(comment);
-                                }
                             }
-                        }
-                        return photoItems;
+                            return photoItems;
+                        });
+
                     });
                 });
             });

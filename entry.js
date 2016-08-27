@@ -16,6 +16,10 @@ Handlebars.registerHelper('clear', function(val) {
     return val || 0;
 });
 
+Handlebars.registerHelper('reverse', function (arr) {
+    arr.reverse();
+});
+
 Handlebars.registerHelper('reply', function(val) {
     let string = val,
         index;
