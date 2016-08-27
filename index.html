@@ -141,7 +141,7 @@
 <script type="text/x-handlebars-template" id="photoTemplate">
     <div id="photoList">
         {{#each list}}
-        <div class="photo" id="">
+        <div class="photo">
             <div class="img" style="background-image:url('{{photo_604}}');"></div>
             <div class="row">
                 <div class="socImage"><span>{{clear likes.count}}</span></div>
@@ -149,8 +149,21 @@
                 <div class="socImage comments_share_icon"><span>{{clear comments.count}}</span></div>
                 <div class="text"><span class="description">{{text}}</span></div>
             </div>
-            <div class="row comments">
-
+            <div class="comments">
+                {{#if comments}}
+                    {{#comments}}
+                    <div>
+                        <img src="{{photo_50}}"></img>
+                        <div><b>{{first_name}} {{last_name}}</b></div>
+                        <div><span>{{formatDate date}}</span></div>
+                        <div><span>{{reply text}}</span></div>
+                    </div>
+                    {{/comments}}
+                {{else}}
+                    <h4 class="emptyComments">
+                        К этому фото нет комментариев.
+                    </h4>
+                {{/if}}
             </div>
         </div>
         {{/each}}

@@ -16,6 +16,17 @@ Handlebars.registerHelper('clear', function(val) {
     return val || 0;
 });
 
+Handlebars.registerHelper('reply', function(val) {
+    let string = val,
+        index;
+
+    if (val.valueOf('[id') != -1) {
+        index = val.indexOf('|');
+        string = val.substr(index + 1, val.length).replace(']', '');
+    }
+    return string;
+});
+
 new Promise(function(resolve) {
     window.onload = resolve;
 }).then(function() {

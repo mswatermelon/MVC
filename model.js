@@ -41,27 +41,49 @@ var Model = {
         return this.callApi('groups.get', {v: '5.53', extended: 1});
     },
     getPhoto: function() {
-        let that = this;
+        let that = this,
+            photoItems;
 
         return this.callApi('photos.getAll', {v: '5.53', extended: 1, count:200})
-            .then(function(photoItems) {
+            .then(function(photos) {
+                photoItems = photos;
+                for (let photo of photoItems.items) {
+                    photo.comments = [];
+                }
                 return that.callApi('photos.getAllComments', {
                     v: '5.53',
                     extended: 1,
                     count: 100
-                }).then(function (comments) {
-                    for (let photo of photoItems.items) {
-                        photo.comments = [];
+                }).then(function(comments){
+                    let users = [];
+
+                    for(let comment of comments.items){
+                        users.push(comment.from_id);
                     }
-                    for (let comment of comments.items) {
+                    console.log('Users', users);
+
+                    return that.callApi('users.get', {
+                        v: '5.53',
+                        user_ids: JSON.stringify(users).replace('[','').replace(']',''),
+                        fields: 'photo_50'
+                    }).then(function (users) {
+                        console.log(users);
                         for (let photo of photoItems.items) {
-                            if (comment.pid == photo.id) {
-                                photo.comments.push(comment);
-                                console.log(photo.comments);
+                            for (let comment of comments.items) {
+                                for (let user of users) {
+                                    if(user.id == comment.from_id){
+                                        comment.first_name = user.first_name;
+                                        comment.last_name = user.last_name;
+                                        comment.photo_50 = user.photo_50;
+                                    }
+                                }
+                                if (comment.pid == photo.id) {
+                                    photo.comments.push(comment);
+                                }
                             }
                         }
-                    }
-                    return photoItems
+                        return photoItems;
+                    });
                 });
             });
     }
