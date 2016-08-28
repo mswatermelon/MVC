@@ -40,45 +40,56 @@ var Model = {
     getGroups: function() {
         return this.callApi('groups.get', {v: '5.53', extended: 1});
     },
+    getPhotos: function() {
+        return this.callApi('photos.getAll', {v: '5.53', extended: 1, count:200});
+    },
+    getAlbums: function(albums) {
+        return this.callApi('photos.getAlbums', {
+            v: '5.53',
+            album_ids: JSON.stringify(albums).replace('[','').replace(']','')
+        });
+    },
+    getComments: function() {
+        return this.callApi('photos.getAllComments', {
+            v: '5.53',
+            extended: 1,
+            count: 100
+        });
+    },
+    getUsers: function (users) {
+        return this.callApi('users.get', {
+            v: '5.53',
+            user_ids: JSON.stringify(users).replace('[','').replace(']',''),
+            fields: 'photo_50'
+        });
+    },
     getPhoto: function() {
-        let that = this,
-            photoItems,
-            albums;
+        let that = this;
 
-        return this.callApi('photos.getAll', {v: '5.53', extended: 1, count:200})
-            .then(function(photos) {
+        return this.getPhotos()
+            .then(function(photoItems) {
                 let albums = [];
-                photoItems = photos;
+
                 for (let photo of photoItems.items) {
                     photo.comments = [];
                     albums.push(photo.album_id);
                 }
-                return that.callApi('photos.getAllComments', {
-                    v: '5.53',
-                    extended: 1,
-                    count: 100
-                }).then(function(comments){
+
+                return that.getComments()
+                    .then(function(comments){
                     let users = [];
 
                     for(let comment of comments.items){
                         users.push(comment.from_id);
                     }
-                    console.log('Users', users);
 
-                    return that.callApi('users.get', {
-                        v: '5.53',
-                        user_ids: JSON.stringify(users).replace('[','').replace(']',''),
-                        fields: 'photo_50'
-                    }).then(function (users) {
-                        console.log(users);
-
-                        return that.callApi('photos.getAlbums', {
-                            v: '5.53',
-                            album_ids: JSON.stringify(albums).replace('[','').replace(']','')
-                        }).then(function (albums) {
-                            console.log(albums);
+                    return that.getUsers(users)
+                        .then(function (users) {
+                        return that.getAlbums(albums)
+                            .then(function (albums) {
                             for (let album of albums.items) {
                                 album.photos = [];
+
                                 for (let photo of photoItems.items) {
                                     for (let comment of comments.items) {
                                         for (let user of users) {
@@ -88,16 +99,19 @@ var Model = {
                                                 comment.photo_50 = user.photo_50;
                                             }
                                         }
+
                                         if (comment.pid == photo.id) {
                                             photo.comments.push(comment);
                                         }
                                     }
+
                                     if (photo.album_id == album.id) {
                                         album.photos.push(photo);
                                     }
                                 }
                             }
-                            return photoItems;
+
+                            return albums;
                         });
 
                     });
