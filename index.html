@@ -63,6 +63,9 @@
             height: 320px;
             overflow: auto;
         }
+        #forSort {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -77,6 +80,21 @@
         <button type="button" class="btn btn-default" onclick="Router.handle('photo')">Фото</button>
     </div>
     <hr>
+    <div id="forSort">
+        <span>Сортировка</span>
+        <select id="sortType">
+            <option value="date">по дате добавления</option>
+            <option value="comments">по количеству комментариев</option>
+            <option value="reposts">по количеству репостов</option>
+            <option value="likes">по количеству лайков</option>
+        </select>
+        <span>по</span>
+        <select id="sortOrder">
+            <option value="desc">убыванию</option>
+            <option value="asc">возрастанию</option>
+        </select>
+        <button id="update">Ок</button>
+    </div>
     <div id="results"></div>
 </div>
 
@@ -140,7 +158,6 @@
         {{/each}}
     </div>
 </script>
-
 
 <script type="text/x-handlebars-template" id="photoTemplate">
     <div id="albumList">

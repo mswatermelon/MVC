@@ -87,24 +87,26 @@ var Model = {
                         .then(function (users) {
                         return that.getAlbums(albums)
                             .then(function (albums) {
+
+                            for (let photo of photoItems.items) {
+                                for (let comment of comments.items) {
+                                    for (let user of users) {
+                                        if (user.id == comment.from_id) {
+                                            comment.first_name = user.first_name;
+                                            comment.last_name = user.last_name;
+                                            comment.photo_50 = user.photo_50;
+                                        }
+                                    }
+
+                                    if (comment.pid == photo.id) {
+                                        photo.comments.push(comment);
+                                    }
+                                }
+                            }
                             for (let album of albums.items) {
                                 album.photos = [];
 
                                 for (let photo of photoItems.items) {
-                                    for (let comment of comments.items) {
-                                        for (let user of users) {
-                                            if (user.id == comment.from_id) {
-                                                comment.first_name = user.first_name;
-                                                comment.last_name = user.last_name;
-                                                comment.photo_50 = user.photo_50;
-                                            }
-                                        }
-
-                                        if (comment.pid == photo.id) {
-                                            photo.comments.push(comment);
-                                        }
-                                    }
-
                                     if (photo.album_id == album.id) {
                                         album.photos.push(photo);
                                     }
@@ -117,5 +119,81 @@ var Model = {
                     });
                 });
             });
+    },
+    updatePhoto: function(params){
+        let that = this;
+
+        this.getPhoto().then(function(albums) {
+            console.log(albums);
+            switch (params[0]){
+                case "date":
+                    albums = that.sortByDates(albums, params[1]);
+                    break;
+                case "comments":
+                    albums = that.sortByComments(albums, params[1]);
+                    break;
+                case "reposts":
+                    albums = that.sortByReposts(albums, params[1]);
+                    break;
+                case "likes":
+                    albums = that.sortByLikes(albums, params[1]);
+                    break;
+            }
+
+            console.log(albums);
+            return Controller.updateRoute(albums);
+        });
+    },
+    sortByDates: function (albums, order) {
+        for(let album of albums.items){
+            album.photos = album.photos.sort(function (a, b) {
+                if (order == "desc") {
+                    return -(new Date(a.date).getTime() - new Date(b.date).getTime());
+                }
+                else {
+                    return new Date(a.date).getTime() - new Date(b.date).getTime();
+                }
+            })
+        }
+        return albums;
+    },
+    sortByComments: function (albums, order) {
+        for(let album of albums.items){
+            album.photos = album.photos.sort(function (a, b) {
+                if (order == "desc") {
+                    return -(a.comments.length - b.comments.length);
+                }
+                else {
+                    return a.comments.length - b.comments.length;
+                }
+            })
+        }
+        return albums;
+    },
+    sortByReposts: function (albums, order) {
+        for(let album of albums.items){
+            album.photos = album.photos.sort(function (a, b) {
+                if (order == "desc") {
+                    return -(a.reposts.count - b.reposts.count);
+                }
+                else {
+                    return a.reposts.count - b.reposts.count;
+                }
+            })
+        }
+        return albums;
+    },
+    sortByLikes: function (albums, order) {
+        for(let album of albums.items){
+            album.photos = album.photos.sort(function (a, b) {
+                if (order == "desc") {
+                    return -(a.likes.count - b.likes.count);
+                }
+                else {
+                    return a.likes.count - b.likes.count;
+                }
+            })
+        }
+        return albums;
     }
 };

@@ -31,6 +31,17 @@ Handlebars.registerHelper('reply', function(val) {
     return string;
 });
 
+document.addEventListener('click', function (e) {
+    if (e.target.getAttribute('id') == "update") {
+        let params = [
+            document.getElementById("sortType").value,
+            document.getElementById("sortOrder").value
+        ];
+
+        Model.updatePhoto(params);
+    }
+});
+
 new Promise(function(resolve) {
     window.onload = resolve;
 }).then(function() {
