@@ -12,14 +12,17 @@ Handlebars.registerHelper('formatDate', function(ts) {
     return new Date(ts * 1000).toLocaleString();
 });
 
+// Если не было лайков, репостов, комментариев - отобразить 0
 Handlebars.registerHelper('clear', function(val) {
     return val || 0;
 });
 
+// Обратить порядок следования элементов в массиве
 Handlebars.registerHelper('reverse', function (arr) {
     arr.reverse();
 });
 
+// Если комментарий - ответ на чей-то комментарий, убрать из сообщения лишнее
 Handlebars.registerHelper('reply', function(val) {
     let string = val,
         index;
@@ -31,6 +34,7 @@ Handlebars.registerHelper('reply', function(val) {
     return string;
 });
 
+// Обработчик на раскрывающийся список
 document.addEventListener('click', function (e) {
     if (e.target.getAttribute('id') == "update") {
         let params = [
@@ -38,6 +42,7 @@ document.addEventListener('click', function (e) {
             document.getElementById("sortOrder").value
         ];
 
+        // Обновим данные, в зависимости от метода сортировки
         Model.updatePhoto(params);
     }
 });

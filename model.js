@@ -38,18 +38,22 @@ var Model = {
         return this.callApi('newsfeed.get', {filters: 'post', count: 20});
     },
     getGroups: function() {
+        // Запросить все группы пользователя
         return this.callApi('groups.get', {v: '5.53', extended: 1});
     },
     getPhotos: function() {
+        // Запросить все фото пользователя
         return this.callApi('photos.getAll', {v: '5.53', extended: 1, count:200});
     },
     getAlbums: function(albums) {
+        // Запросить все альбомы фотографий пользователя
         return this.callApi('photos.getAlbums', {
             v: '5.53',
             album_ids: JSON.stringify(albums).replace('[','').replace(']','')
         });
     },
     getComments: function() {
+        // Запросить все комментарии к фотографиям пользователя
         return this.callApi('photos.getAllComments', {
             v: '5.53',
             extended: 1,
@@ -57,6 +61,7 @@ var Model = {
         });
     },
     getUsers: function (users) {
+        // Запросить информацию о нескольких пользователях
         return this.callApi('users.get', {
             v: '5.53',
             user_ids: JSON.stringify(users).replace('[','').replace(']',''),
@@ -64,30 +69,40 @@ var Model = {
         });
     },
     getPhoto: function() {
+        // Запросить фото пользователя, распределенные по альбомам
         let that = this;
 
         return this.getPhotos()
+            // Когда получаем фото
             .then(function(photoItems) {
                 let albums = [];
 
+                // Подготавливаем массивы для комментариев в фото,
+                // для фото в альбомах
                 for (let photo of photoItems.items) {
                     photo.comments = [];
                     albums.push(photo.album_id);
                 }
 
+                // Когда получаем комментарии
                 return that.getComments()
                     .then(function(comments){
                     let users = [];
 
+                    // Заполняем массив с пользователями
                     for(let comment of comments.items){
                         users.push(comment.from_id);
                     }
 
+                    // Отправляем список пользователей и получаем информацию
                     return that.getUsers(users)
                         .then(function (users) {
-                        return that.getAlbums(albums)
-                            .then(function (albums) {
 
+                        return that.getAlbums(albums)
+                            // Когда получаем список альбомов собираем данные вместе
+                            .then(function (albums) {
+                            // К комментарию добавляем данные о пользователе
+                            // К фото добавляем комментарий
                             for (let photo of photoItems.items) {
                                 for (let comment of comments.items) {
                                     for (let user of users) {
@@ -103,6 +118,7 @@ var Model = {
                                     }
                                 }
                             }
+                            //Добавляем фото в альбом
                             for (let album of albums.items) {
                                 album.photos = [];
 
@@ -113,6 +129,7 @@ var Model = {
                                 }
                             }
 
+                            // Возвращаем собранные данные
                             return albums;
                         });
 
@@ -121,10 +138,11 @@ var Model = {
             });
     },
     updatePhoto: function(params){
+        // Обновить фото в соответствии с выбранной сортировкой
         let that = this;
 
         this.getPhoto().then(function(albums) {
-            console.log(albums);
+            // Сортиовку проводить в зависимости от типа данных
             switch (params[0]){
                 case "date":
                     albums = that.sortByDates(albums, params[1]);
@@ -140,14 +158,15 @@ var Model = {
                     break;
             }
 
-            console.log(albums);
             return Controller.updateRoute(albums);
         });
     },
     sortByDates: function (albums, order) {
         for(let album of albums.items){
+            // Сортировка по дате
             album.photos = album.photos.sort(function (a, b) {
                 if (order == "desc") {
+                    // Минус, так как применяю helper c обратным следованием
                     return -(new Date(a.date).getTime() - new Date(b.date).getTime());
                 }
                 else {
@@ -159,8 +178,10 @@ var Model = {
     },
     sortByComments: function (albums, order) {
         for(let album of albums.items){
+            // Сортировка по количеству комментариев
             album.photos = album.photos.sort(function (a, b) {
                 if (order == "desc") {
+                    // Минус, так как применяю helper c обратным следованием
                     return -(a.comments.length - b.comments.length);
                 }
                 else {
@@ -172,8 +193,10 @@ var Model = {
     },
     sortByReposts: function (albums, order) {
         for(let album of albums.items){
+            // Сортировка по количеству репостов
             album.photos = album.photos.sort(function (a, b) {
                 if (order == "desc") {
+                    // Минус, так как применяю helper c обратным следованием
                     return -(a.reposts.count - b.reposts.count);
                 }
                 else {
@@ -185,8 +208,10 @@ var Model = {
     },
     sortByLikes: function (albums, order) {
         for(let album of albums.items){
+            // Сортировка по количеству лайков
             album.photos = album.photos.sort(function (a, b) {
                 if (order == "desc") {
+                    // Минус, так как применяю helper c обратным следованием
                     return -(a.likes.count - b.likes.count);
                 }
                 else {

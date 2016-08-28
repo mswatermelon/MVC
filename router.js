@@ -1,12 +1,9 @@
 var Router = {
     handle: function(route) {
-        var routeName = route + 'Route';
+        let routeName = route + "Route";
 
-
-        /*if (!Controller.hasOwnProperty(routeName)) {
-            throw new Error('Маршрут не найден!');
-        }*/
-
+        // Скрыть фильрацию фото
+        let forSort = document.getElementById("forSort");
         if (routeName == "photoRoute") {
             forSort.style.display = "block";
         }

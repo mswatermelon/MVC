@@ -25,6 +25,7 @@ var Controller = {
         });
     },
     updateRoute: function(photo) {
+        // Обновим отображение всех фото после сортировки
         results.innerHTML = View.render('photo', {list: photo.items});
     }
 };
